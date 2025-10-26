@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- Включаем поддержку аспектов -->
+    <aop:aspectj-autoproxy/>
+
+        <!-- DataSource Bean -->
+        <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+            <property name="driverClassName" value="oracle.jdbc.OracleDriver"/>
+            <property name="url" value="jdbc:oracle:thin:@localhost:1521:xe"/>
+            <property name="username" value="system"/>
+            <property name="password" value="root"/>
+        </bean>
+
+        <!-- SessionFactory Bean -->
+        <!-- Hibernate Session Factory -->
+        <bean id="hibernateSessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+            <property name="dataSource" ref="dataSource"/>
+            <property name="packagesToScan" value="md"/>
+            <property name="hibernateProperties">
+                <props>
+                    <prop key="hibernate.dialect">org.hibernate.dialect.OracleDialect</prop>
+                    <prop key="hibernate.show_sql">false</prop>
+                    <prop key="hibernate.hbm2ddl.auto">create</prop>
+                    <prop key="hibernate.c3p0.min_size">5</prop>
+                    <prop key="hibernate.c3p0.max_size">20</prop>
+                    <prop key="hibernate.c3p0.timeout">300</prop>
+                    <prop key="hibernate.c3p0.max_statements">50</prop>
+                    <prop key="hibernate.c3p0.idle_test_period">3000</prop>
+                </props>
+            </property>
+            <property name="annotatedClasses">
+                <list>
+                    <value>md.entity.EmployeesInfo</value>
+                    <value>md.entity.EmployeesDepartments</value>
+                    <value>md.entity.EmployeesPositions</value>
+                    <value>md.entity.Project</value>
+                </list>
+            </property>
+        </bean>
+
+        <!-- Transaction Manager Bean -->
+        <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+            <property name="sessionFactory" ref="hibernateSessionFactory"/>
+        </bean>
+
+
+   <!-- &lt;!&ndash; Definition of departmentDao -->
+    <bean id="departmentDao" class="md.hibernate.repository.DepartmentDao">
+        <constructor-arg ref="hibernateSessionFactory"/>
+    </bean>
+
+    <!-- Definition of PersonDao -->
+    <bean id="personDao" class="md.hibernate.repository.PersonDao">
+        <constructor-arg ref="hibernateSessionFactory"/>
+    </bean>
+
+
+
+    <!-- Definition of employeesPossitionsDao -->
+    <bean id="employeesPossitionsDao" class="md.hibernate.repository.EmployeesPositionsDao">
+        <constructor-arg ref="hibernateSessionFactory"/>
+    </bean>
+
+    <!-- Definition of ProjectDao -->
+    <bean id="projectDao" class="md.hibernate.repository.ProjectDao">
+        <constructor-arg ref="hibernateSessionFactory"/>
+    </bean>
+     <!-- Definition of CompanyServiceImpl -->
+    <bean id="companyService" class="md.service.EmployeeService">
+        <constructor-arg ref="personDao"/>
+    </bean>
+
+    <bean id="validationAspect" class="md.aspects.ValidationAspect"/>
+</beans>
